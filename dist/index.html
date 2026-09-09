@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#faf4e8">
+  <meta name="description" content="おかしをつくって、おうちをかざろう。親子で楽しむ、自由なお菓子の家づくり。">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>おかしのおうち</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" type="image/png" href="./assets/icon-192.png">
+  <link rel="apple-touch-icon" href="./assets/icon-192.png">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand"><span class="brand-cookie" aria-hidden="true">🍪</span><div><h1>おかしのおうち</h1><span class="brand-en">MY LITTLE SWEET HOME</span></div></div>
+      <nav class="main-nav" aria-label="あそびかた">
+        <button class="nav-button active" data-view="build" aria-label="おうちをつくる" aria-current="page"><span data-icon="house"></span><span>おうち</span></button>
+        <button class="nav-button" data-view="games" aria-label="おかしをつくる"><span data-icon="chef"></span><span>つくる</span></button>
+        <button class="nav-button" data-view="gallery" aria-label="アルバムをひらく"><span data-icon="album"></span><span>アルバム</span></button>
+      </nav>
+      <button id="settings-button" class="parent-button" aria-label="保護者の設定"><span data-icon="settings"></span></button>
+    </header>
+
+    <main id="build-view" class="view build-view">
+      <section class="play-area" aria-label="おかしのおうちをつくる場所">
+        <div class="scene-message"><span class="little-spark">✦</span><span id="guide-text">すきなおかしで、かざってみよう</span><span class="little-spark">✦</span></div>
+        <div id="canvas-wrap" class="canvas-wrap">
+          <canvas id="house-canvas" width="1200" height="750" tabindex="0" aria-label="おうち。下からパーツを選んで、ここをタップすると置けます。" role="application"></canvas>
+          <div id="loading" class="loading"><span>🍪</span><p>おかしを じゅんびちゅう…</p></div>
+          <div class="scene-tools left-tools">
+            <button id="undo" class="tool-button" aria-label="ひとつもどす" title="ひとつもどす"><span data-icon="undo"></span><small>もどす</small></button>
+            <button id="remove" class="tool-button" aria-label="えらんだおかしをしまう" title="おかしをしまう"><span data-icon="box"></span><small>しまう</small></button>
+          </div>
+          <div class="scene-tools right-tools">
+            <button id="save" class="tool-button save-button" aria-label="アルバムにほぞん"><span data-icon="camera"></span><small>ほぞん</small></button>
+            <button id="new-house" class="tool-button" aria-label="あたらしいおうち"><span data-icon="plus"></span><small>あたらしく</small></button>
+          </div>
+          <div id="save-status" class="save-status" aria-live="polite"></div>
+        </div>
+      </section>
+      <section class="palette" aria-label="おかしのパーツ">
+        <div id="categories" class="categories" role="tablist" aria-label="おかしのしゅるい"></div>
+        <div class="parts-row"><div id="parts" class="parts" role="tabpanel"></div><button id="more-parts" class="more-parts"><span>👩‍🍳</span><b>おかしを<br>つくる</b><span class="tiny-plus">＋</span></button></div>
+      </section>
+    </main>
+
+    <main id="games-view" class="view panel-view" hidden>
+      <div class="view-heading"><span class="heading-ornament">✦</span><h2>なにを つくろう？</h2><p>つくったおかしで、おうちをかざろう</p></div>
+      <div id="game-cards" class="game-cards"></div>
+      <div class="gentle-note"><span>🐰</span><p>ゆっくりで だいじょうぶ。</p></div>
+    </main>
+
+    <main id="gallery-view" class="view panel-view" hidden>
+      <div class="view-heading"><span class="heading-ornament">✦</span><h2>おうちの アルバム</h2><p>おうちをえらんで、つづきをつくろう</p></div>
+      <div id="gallery-list" class="gallery-list"></div>
+    </main>
+  </div>
+
+  <dialog id="mini-dialog" class="mini-dialog" aria-labelledby="mini-title">
+    <div class="mini-top"><button id="mini-close" class="round-button" aria-label="おうちへもどる"><span data-icon="back"></span></button><h2 id="mini-title"></h2><span id="mini-icon" class="mini-icon" aria-hidden="true"></span></div>
+    <p id="mini-hint" class="mini-hint"></p>
+    <div class="mini-canvas-wrap"><canvas id="mini-canvas" width="1000" height="560" role="application" aria-label="おかしをタップしたり、指で動かして遊ぼう"></canvas></div>
+    <div class="mini-progress" role="progressbar" aria-label="おかしのできあがり" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="mini-progress-fill"></div></div>
+    <p id="mini-caption" class="mini-caption"></p>
+  </dialog>
+
+  <dialog id="reward-dialog" class="reward-dialog" aria-labelledby="reward-title">
+    <span class="reward-spark">✦</span><h2 id="reward-title">できたね！</h2><p id="reward-message"></p><div id="reward-parts" class="reward-parts"></div><button id="use-reward" class="primary-button"><span data-icon="house"></span>おうちに かざる</button>
+  </dialog>
+
+  <dialog id="parent-dialog" class="parent-dialog" aria-labelledby="parent-title">
+    <button class="dialog-close round-button" data-close="parent-dialog" aria-label="閉じる"><span data-icon="close"></span></button>
+    <h2 id="parent-title">保護者の方へ</h2>
+    <div id="parent-gate"><p>設定をひらくには、答えを選んでください。</p><strong class="parent-sum">4 ＋ 7 ＝ ?</strong><div class="gate-answers"><button data-answer="9">9</button><button data-answer="11">11</button><button data-answer="13">13</button></div></div>
+    <div id="parent-settings" hidden>
+      <label class="setting"><span>オルゴールの音楽</span><input id="setting-bgm" type="checkbox" role="switch"></label>
+      <label class="setting"><span>おかしの効果音</span><input id="setting-sfx" type="checkbox" role="switch"></label>
+      <label class="setting"><span>日本語の声かけ</span><input id="setting-voice" type="checkbox" role="switch"></label>
+      <p class="setting-note">声かけは端末内の日本語音声がある場合に使えます。</p>
+      <div class="parent-info"><h3>iPadであそぶ</h3><p>Safariの共有ボタンから「ホーム画面に追加」。初回はこの画面のオフライン準備が完了するまでお待ちください。</p><p id="offline-status" role="status">オフラインの準備を確認中…</p><p>作品はこの端末・このブラウザに保存されます。ブラウザのデータを消すと作品も消えます。保存件数の上限は設けていません。</p></div>
+    </div>
+  </dialog>
+
+  <dialog id="notice-dialog" class="parent-dialog" aria-labelledby="notice-title"><h2 id="notice-title">保護者の方へ</h2><p id="notice-message"></p><button class="primary-button" data-close="notice-dialog">とじる</button></dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div id="drag-ghost" class="drag-ghost" aria-hidden="true"></div>
+  <noscript>このゲームをあそぶには、ブラウザのJavaScriptを有効にしてください。</noscript>
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
