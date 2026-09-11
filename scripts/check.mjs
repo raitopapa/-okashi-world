@@ -14,7 +14,7 @@ for(const file of files){
 }
 const manifest=JSON.parse(fs.readFileSync(path.join(dist,'manifest.webmanifest'),'utf8'));
 for(const icon of manifest.icons)if(!fs.existsSync(path.join(dist,icon.src)))errors.push(`Missing icon: ${icon.src}`);
-for(const required of ['index.html','sw.js','js/art.js','assets/garden.webp','assets/parts.png'])if(!fs.existsSync(path.join(dist,required)))errors.push(`Missing: ${required}`);
+for(const required of ['index.html','sw.js','js/art.js','js/atlas-map.js','assets/garden.webp','assets/parts.png','assets/workshop.png'])if(!fs.existsSync(path.join(dist,required)))errors.push(`Missing: ${required}`);
 const bytes=files.reduce((sum,f)=>sum+fs.statSync(f).size,0);
 if(errors.length){console.error(errors.join('\n'));process.exit(1);}
 console.log(`✓ JavaScript syntax, local references, PWA manifest: ${files.length} files, ${(bytes/1024/1024).toFixed(2)} MiB`);

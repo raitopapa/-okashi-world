@@ -3,11 +3,11 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 const source=fs.readFileSync(new URL('../dist/sw.js',import.meta.url),'utf8');
-function worker({failInstall=false}={}){
+function worker({failInstall=false,root='https://example.test/'}={}){
   const listeners={},cacheData=new Map(),deleted=[],network=[];let claimed=false,skipped=false;
   const cache={addAll:async urls=>{if(failInstall)throw new Error('network disconnected');for(const url of urls)cacheData.set(url,{url,ok:true});},match:async request=>cacheData.get(typeof request==='string'?request:request.url.split('?')[0])};
   const caches={open:async()=>cache,keys:async()=>['other-app-v3','okashi-world-/-v0'],delete:async key=>{deleted.push(key);return true;}};
-  const self={location:{href:'https://example.test/sw.js'},clients:{claim:async()=>{claimed=true;}},skipWaiting:async()=>{skipped=true;},addEventListener:(key,fn)=>listeners[key]=fn};
+  const self={location:{href:new URL('sw.js',root).href},clients:{claim:async()=>{claimed=true;}},skipWaiting:async()=>{skipped=true;},addEventListener:(key,fn)=>listeners[key]=fn};
   vm.runInNewContext(source,{self,caches,URL,fetch:async req=>{network.push(req.url);throw new Error('offline');}});
   const dispatch=async(name,event={})=>{let promise;listeners[name]({...event,waitUntil:p=>promise=p,respondWith:p=>promise=p});return promise?await promise:undefined;};
   return{dispatch,cacheData,deleted,network,get claimed(){return claimed;},get skipped(){return skipped;}};
@@ -23,3 +23,12 @@ test('offline navigation and artwork requests are served without network',async(
 test('activation preserves unrelated application caches',async()=>{const w=worker();await w.dispatch('activate');assert.deepEqual(w.deleted,['okashi-world-/-v0']);assert.equal(w.claimed,true);});
 test('interrupted first download does not activate an incomplete worker',async()=>{const w=worker({failInstall:true});await assert.rejects(w.dispatch('install'),/disconnected/);assert.equal(w.skipped,false);});
 test('third party and non-GET requests are not intercepted',async()=>{const w=worker();assert.equal(await w.dispatch('fetch',{request:{url:'https://elsewhere.test/image.png',method:'GET',mode:'cors'}}),undefined);assert.equal(await w.dispatch('fetch',{request:{url:'https://example.test/',method:'POST',mode:'cors'}}),undefined);});
+test('a GitHub Pages subdirectory serves the new crew offline without capturing sibling sites',async()=>{
+  const root='https://example.test/-okashi-world/',w=worker({root});await w.dispatch('install');
+  for(const file of ['index.html','js/atlas-map.js','assets/workshop.png']){
+    const request={url:root+file,method:'GET',mode:file==='index.html'?'navigate':'cors'};
+    assert.equal((await w.dispatch('fetch',{request})).url,root+file);
+  }
+  assert.equal(await w.dispatch('fetch',{request:{url:'https://example.test/another-game/',method:'GET',mode:'navigate'}}),undefined);
+  assert.equal(w.network.length,0);
+});

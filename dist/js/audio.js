@@ -13,6 +13,7 @@ export class AudioPlayer {
   }
   effect(kind='place'){
     if(!this.settings.sfx)return;
+    if(kind==='build'){this.tone(262,0,.11,.06,'triangle');this.tone(330,.12,.11,.045,'triangle');this.tone(1046.5,.22,.3,.05);return;}
     (kind==='win'?[523.25,659.25,783.99,1046.5]:kind==='soft'?[698.46]:[783.99,1046.5]).forEach((f,i)=>this.tone(f,i*.1,kind==='win'?.55:.22));
   }
   startMusic(){
