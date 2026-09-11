@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#faf4e8">
-  <meta name="description" content="おかしをつくって、おうちをかざろう。親子で楽しむ、自由なお菓子の家づくり。">
+  <meta name="theme-color" content="#fff4cf">
+  <meta name="description" content="どうぶつたちと、おかしのおうちをたてよう。れんがを焼いて、チョコを混ぜて、じぶんだけのおうちづくり。">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <title>おかしのおうち</title>
@@ -16,10 +16,10 @@
 <body>
   <div class="app">
     <header class="topbar">
-      <div class="brand"><span class="brand-cookie" aria-hidden="true">🍪</span><div><h1>おかしのおうち</h1><span class="brand-en">MY LITTLE SWEET HOME</span></div></div>
+      <div class="brand"><span id="brand-art" class="brand-cookie" aria-hidden="true">🍪</span><div><span class="brand-en">どうぶつたちの けんせつたい</span><h1>おかしのおうち</h1></div></div>
       <nav class="main-nav" aria-label="あそびかた">
-        <button class="nav-button active" data-view="build" aria-label="おうちをつくる" aria-current="page"><span data-icon="house"></span><span>おうち</span></button>
-        <button class="nav-button" data-view="games" aria-label="おかしをつくる"><span data-icon="chef"></span><span>つくる</span></button>
+        <button class="nav-button active" data-view="build" aria-label="おうちのこうじば" aria-current="page"><span data-icon="house"></span><span>こうじば</span></button>
+        <button class="nav-button" data-view="games" aria-label="ざいりょうをつくる"><span data-icon="chef"></span><span>おしごと</span></button>
         <button class="nav-button" data-view="gallery" aria-label="アルバムをひらく"><span data-icon="album"></span><span>アルバム</span></button>
       </nav>
       <button id="settings-button" class="parent-button" aria-label="保護者の設定"><span data-icon="settings"></span></button>
@@ -27,31 +27,32 @@
 
     <main id="build-view" class="view build-view">
       <section class="play-area" aria-label="おかしのおうちをつくる場所">
-        <div class="scene-message"><span class="little-spark">✦</span><span id="guide-text">すきなおかしで、かざってみよう</span><span class="little-spark">✦</span></div>
+        <div class="scene-message"><span id="guide-crew" aria-hidden="true"></span><span id="guide-text">きょうは どんな おうちにしよう？</span></div>
         <div id="canvas-wrap" class="canvas-wrap">
           <canvas id="house-canvas" width="1200" height="750" tabindex="0" aria-label="おうち。下からパーツを選んで、ここをタップすると置けます。" role="application"></canvas>
-          <div id="loading" class="loading"><span>🍪</span><p>おかしを じゅんびちゅう…</p></div>
+          <div id="loading" class="loading"><span>🍪</span><p>どうぶつたちが じゅんびちゅう…</p></div>
           <div class="scene-tools left-tools">
             <button id="undo" class="tool-button" aria-label="ひとつもどす" title="ひとつもどす"><span data-icon="undo"></span><small>もどす</small></button>
             <button id="remove" class="tool-button" aria-label="えらんだおかしをしまう" title="おかしをしまう"><span data-icon="box"></span><small>しまう</small></button>
           </div>
           <div class="scene-tools right-tools">
-            <button id="save" class="tool-button save-button" aria-label="アルバムにほぞん"><span data-icon="camera"></span><small>ほぞん</small></button>
+            <button id="save" class="tool-button save-button" aria-label="できあがり。アルバムにほぞん"><span data-icon="camera"></span><small>できあがり</small></button>
             <button id="new-house" class="tool-button" aria-label="あたらしいおうち"><span data-icon="plus"></span><small>あたらしく</small></button>
           </div>
           <div id="save-status" class="save-status" aria-live="polite"></div>
         </div>
       </section>
       <section class="palette" aria-label="おかしのパーツ">
+        <div class="catalogue-heading"><span>おかしの ざいりょうカタログ</span><small>えらんで、おうちへ。</small></div>
         <div id="categories" class="categories" role="tablist" aria-label="おかしのしゅるい"></div>
-        <div class="parts-row"><div id="parts" class="parts" role="tabpanel"></div><button id="more-parts" class="more-parts"><span>👩‍🍳</span><b>おかしを<br>つくる</b><span class="tiny-plus">＋</span></button></div>
+        <div class="parts-row"><div id="parts" class="parts" role="tabpanel"></div><button id="more-parts" class="more-parts"><span id="work-button-art">👩‍🍳</span><b>どうぶつと<br>つくる</b><span class="tiny-plus">＋</span></button></div>
       </section>
     </main>
 
     <main id="games-view" class="view panel-view" hidden>
-      <div class="view-heading"><span class="heading-ornament">✦</span><h2>なにを つくろう？</h2><p>つくったおかしで、おうちをかざろう</p></div>
+      <div class="view-heading"><span class="heading-ornament">おかしの けんせつたい</span><h2>どの おしごとを しよう？</h2><p>はこんで、まぜて、こんがり やいて。</p></div>
       <div id="game-cards" class="game-cards"></div>
-      <div class="gentle-note"><span>🐰</span><p>ゆっくりで だいじょうぶ。</p></div>
+      <div class="gentle-note"><span id="work-friend">🐰</span><p>みんなで つくると、たのしいね。</p></div>
     </main>
 
     <main id="gallery-view" class="view panel-view" hidden>
@@ -69,7 +70,7 @@
   </dialog>
 
   <dialog id="reward-dialog" class="reward-dialog" aria-labelledby="reward-title">
-    <span class="reward-spark">✦</span><h2 id="reward-title">できたね！</h2><p id="reward-message"></p><div id="reward-parts" class="reward-parts"></div><button id="use-reward" class="primary-button"><span data-icon="house"></span>おうちに かざる</button>
+    <span id="reward-crew" class="reward-spark">✦</span><h2 id="reward-title">できたね！</h2><p id="reward-message"></p><div id="reward-parts" class="reward-parts"></div><button id="use-reward" class="primary-button"><span data-icon="house"></span>こうじばへ はこぶ</button>
   </dialog>
 
   <dialog id="parent-dialog" class="parent-dialog" aria-labelledby="parent-title">
