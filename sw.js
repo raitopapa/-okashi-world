@@ -1,5 +1,5 @@
 // Change VERSION whenever a shipped asset changes; an install is all-or-nothing.
-const VERSION='v2.1.0';
+const VERSION='v2.2.0';
 const ROOT=new URL('./',self.location.href);
 const PREFIX=`okashi-world-${ROOT.pathname}-`;
 const CACHE=PREFIX+VERSION;
