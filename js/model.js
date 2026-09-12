@@ -1,4 +1,10 @@
 export const W = 1200, H = 750;
+export const STAGES = [
+  {id:'orchard',name:'くだものの もり',file:'garden.webp'},
+  {id:'seaside',name:'うみべ',file:'seaside.webp'},
+  {id:'snow',name:'ゆきの ひろば',file:'snow.webp'},
+];
+export const stageById = id => STAGES.find(s=>s.id===id)||STAGES[0];
 export const CATEGORIES = [
   { id: 'wall', name: 'かべ・どだい', sprite: 0 },
   { id: 'roof', name: 'やね', sprite: 16 },
@@ -34,15 +40,19 @@ export const PARTS = [
   { id:'fruit-basket', name:'くだもののかご', category:'garden', sprite:23, w:132, h:110, layer:4 },
 ];
 export const GAMES = [
-  { id:'cookie', name:'れんがを ポン！', hint:'うさぎさんと クッキーづくり！', icon:'🍪', sprite:0, crew:24, action:'かべの ざいりょう', duration:30 },
-  { id:'chocolate', name:'チョコを まぜよう', hint:'くるくる まぜて、やねづくり！', icon:'🍫', sprite:28, crew:25, action:'やねの ざいりょう', duration:30 },
-  { id:'catch', name:'ざいりょう あつめ', hint:'かごにいれて、こうじばへ！', icon:'🍬', sprite:26, crew:26, action:'かざりの ざいりょう', duration:35 },
-  { id:'oven', name:'かまどで こんがり', hint:'きじをいれて、どだいづくり！', icon:'🥐', sprite:29, crew:24, action:'どだいの ざいりょう', duration:30 },
+  { id:'cookie', name:'れんがを ポン！', hint:'きじを 4かい ポン！', icon:'🍪', sprite:0, crew:24, action:'かべの ざいりょう', target:4 },
+  { id:'chocolate', name:'チョコを まぜよう', hint:'くるくる まぜよう！ タップでも いいよ', icon:'🍫', sprite:28, crew:25, action:'やねの ざいりょう', target:6 },
+  { id:'catch', name:'ざいりょう あつめ', hint:'かごに 3こ はこぼう！', icon:'🍬', sprite:26, crew:26, action:'かざりの ざいりょう', target:3 },
+  { id:'oven', name:'かまどで こんがり', hint:'きじを かまどに いれよう！', icon:'🥐', sprite:29, crew:24, action:'どだいの ざいりょう', duration:2 },
 ];
+export function gameProgress(game){
+  if(game.id==='oven')return game.baking?Math.min(1,game.elapsed/game.duration):0;
+  return Math.min(1,game.count/game.target);
+}
 export const partById = id => PARTS.find(p => p.id === id);
 export const starterUnlocks = () => PARTS.filter(p => !p.game).map(p => p.id);
 export const uid = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-export const blankHouse = () => ({ id:uid(), name:'おかしのおうち', items:[], savedAt:0 });
+export const blankHouse = (stage='orchard') => ({ id:uid(), name:'おかしのおうち', stage:stageById(stage).id, items:[], savedAt:0 });
 export function starterHouse() {
   const h=blankHouse();
   [['pancake-base',600,612],['biscuit',600,460],['waffle-roof',600,279],['candy-pillar',480,466],['candy-pillar',720,466],['donut-window',518,448],['pretzel-window',682,448],['chocolate-door',600,515],['fruit-basket',816,603]].forEach(([part,x,y])=>h.items.push({id:uid(),part,x,y}));

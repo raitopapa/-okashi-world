@@ -1,12 +1,12 @@
 // Change VERSION whenever a shipped asset changes; an install is all-or-nothing.
-const VERSION='v2.0.0';
+const VERSION='v2.1.0';
 const ROOT=new URL('./',self.location.href);
 const PREFIX=`okashi-world-${ROOT.pathname}-`;
 const CACHE=PREFIX+VERSION;
 const FILES=[
   './','index.html','style.css','manifest.webmanifest',
-  'js/app.js','js/model.js','js/art.js','js/atlas-map.js','js/audio.js','js/storage.js','js/minigames.js',
-  'assets/garden.webp','assets/parts.png','assets/workshop.png','assets/icon-192.png','assets/icon-512.png',
+  'js/app.js','js/model.js','js/art.js','js/atlas-map.js','js/audio.js','js/celebrations.js','js/storage.js','js/minigames.js',
+  'assets/garden.webp','assets/seaside.webp','assets/snow.webp','assets/parts.png','assets/workshop.png','assets/icon-192.png','assets/icon-512.png',
 ];
 const URLS=FILES.map(path=>new URL(path,ROOT).href);
 self.addEventListener('install',event=>{

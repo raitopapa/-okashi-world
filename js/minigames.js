@@ -1,4 +1,4 @@
-import { GAMES } from './model.js';
+import { GAMES,gameProgress } from './model.js';
 import { drawSprite,spriteElement } from './art.js';
 const $=id=>document.getElementById(id);
 export class MiniGames {
@@ -9,29 +9,30 @@ export class MiniGames {
     document.addEventListener('visibilitychange',()=>{this.last=performance.now();});
   }
   open(id){
-    this.close();const game=GAMES.find(g=>g.id===id);this.active={...game,elapsed:0,started:id!=='oven',count:0,stamps:[],falling:[],drag:null,pointerId:null,baking:false,angle:0,spark:0};
+    this.close();const game=GAMES.find(g=>g.id===id);this.active={...game,elapsed:0,count:0,stamps:[],falling:[],drag:null,pointerId:null,baking:false,angle:0,spark:0,finishing:false,completeFor:0};
     for(let i=0;i<7;i++)this.active.falling.push({x:135+i*120,y:55+Math.random()*200,sprite:[5,10,11,15][i%4],speed:15+Math.random()*13});
     $('mini-title').textContent=game.name;$('mini-hint').textContent=game.hint;$('mini-icon').replaceChildren(spriteElement(game.crew));
-    $('mini-progress-fill').style.width='0%';$('mini-dialog').showModal();this.last=performance.now();this.audio.resume();this.audio.say(game.hint);this.animate();
+    $('mini-progress-fill').style.width='0%';$('mini-dialog').showModal();this.last=performance.now();this.audio.resume();this.animate();
   }
   close(){cancelAnimationFrame(this.frameId);this.active=null;if($('mini-dialog').open)$('mini-dialog').close();}
   point(e){const r=this.canvas.getBoundingClientRect();const fit=Math.min(r.width/1000,r.height/560),ox=(r.width-1000*fit)/2,oy=(r.height-560*fit)/2;return{x:(e.clientX-r.left-ox)/fit,y:(e.clientY-r.top-oy)/fit};}
   down(e){
-    const g=this.active;if(!g||g.pointerId!==null)return;e.preventDefault();g.pointerId=e.pointerId;this.canvas.setPointerCapture(e.pointerId);this.audio.resume();const p=this.point(e);g.lastPoint=p;
+    const g=this.active;if(!g||g.finishing||g.pointerId!==null)return;e.preventDefault();g.pointerId=e.pointerId;this.canvas.setPointerCapture(e.pointerId);this.audio.resume();const p=this.point(e);g.lastPoint=p;
     if(g.id==='cookie'){
       if(p.x>170&&p.x<820&&p.y>135&&p.y<435){g.stamps.push({x:p.x,y:p.y,sprite:g.stamps.length%3?0:8});if(g.stamps.length>30)g.stamps.shift();g.count++;this.audio.effect('build');g.spark=.8;}
-    }else if(g.id==='chocolate'){g.count++;g.angle+=.7;this.audio.effect('soft');}
+    }else if(g.id==='chocolate'&&Math.hypot(p.x-500,p.y-290)<240){g.count++;g.angle+=.7;this.audio.effect('soft');}
     else if(g.id==='catch'){
       if(p.y>390&&p.x>310&&p.x<690&&g.selectedCandy){this.collect(g.selectedCandy);g.selectedCandy=null;}
       else{const candy=g.falling.find(c=>Math.hypot(c.x-p.x,c.y-p.y)<75);if(candy){g.drag=candy;g.selectedCandy=candy;g.dragStart=p;}}
-    }else if(g.id==='oven'&&!g.baking){
+    }else if(g.id==='oven'&&g.baking){g.elapsed=g.duration;
+    }else if(g.id==='oven'){
       if(p.x<375&&p.y>155){g.drag={x:p.x,y:p.y};g.doughSelected=true;}
       else if(p.x>440&&p.x<840&&p.y>120&&g.doughSelected)this.bake();
     }
   }
   move(e){
-    const g=this.active;if(!g||g.pointerId!==e.pointerId)return;e.preventDefault();const p=this.point(e);
-    if(g.id==='chocolate'&&Math.hypot(p.x-500,p.y-290)<240){const dist=Math.hypot(p.x-g.lastPoint.x,p.y-g.lastPoint.y);g.angle+=dist*.025;g.count+=dist*.02;if(dist>7&&Math.random()<.035)this.audio.effect('soft');}
+    const g=this.active;if(!g||g.finishing||g.pointerId!==e.pointerId)return;e.preventDefault();const p=this.point(e);
+    if(g.id==='chocolate'&&Math.hypot(p.x-500,p.y-290)<240&&Math.hypot(g.lastPoint.x-500,g.lastPoint.y-290)<240){const dist=Math.hypot(p.x-g.lastPoint.x,p.y-g.lastPoint.y);g.angle+=dist*.025;g.count+=dist/160;if(dist>7&&Math.random()<.035)this.audio.effect('soft');}
     if(g.drag){g.drag.x=Math.max(45,Math.min(955,p.x));g.drag.y=Math.max(45,Math.min(525,p.y));}
     g.lastPoint=p;
   }
@@ -43,14 +44,14 @@ export class MiniGames {
   }
   cancelPointer(){if(this.active){this.active.drag=null;this.active.pointerId=null;}}
   collect(candy){const g=this.active;g.count++;candy.y=-80;candy.x=100+Math.random()*800;g.spark=1;this.audio.effect();}
-  bake(){const g=this.active;g.baking=true;g.started=true;g.elapsed=0;g.drag=null;this.audio.effect();$('mini-hint').textContent='ふっくら おいしく なあれ！';}
+  bake(){const g=this.active;g.baking=true;g.elapsed=0;g.drag=null;this.audio.effect();$('mini-hint').textContent='すぐ やけるよ！ タップで とりだそう';}
   animate(){
     const g=this.active;if(!g)return;const now=performance.now(),dt=Math.min((now-this.last)/1000,.1);this.last=now;
-    if(!document.hidden){if(g.started)g.elapsed+=dt;g.spark=Math.max(0,g.spark-dt);if(g.id==='catch')for(const c of g.falling){if(c!==g.drag&&c!==g.selectedCandy){c.y+=c.speed*dt;if(c.y>390)c.y=-70;}}}
-    const progress=g.started?Math.min(1,g.elapsed/g.duration):0;$('mini-progress-fill').style.width=`${progress*100}%`;$('mini-dialog').querySelector('[role="progressbar"]').setAttribute('aria-valuenow',String(Math.round(progress*100)));
-    $('mini-caption').textContent=g.id==='oven'&&!g.baking?'きじをえらんで、かまどを タップしても いいよ':g.id==='catch'&&g.selectedCandy?'かごを タップしても いいよ':progress>.8?'もうすぐ できるよ！':g.count>0?'いいね、そのちょうし！':'ゆっくり あそぼう';
+    if(!document.hidden){if(g.baking)g.elapsed+=dt;g.spark=Math.max(0,g.spark-dt);if(g.finishing)g.completeFor+=dt;if(g.id==='catch')for(const c of g.falling){if(c!==g.drag&&c!==g.selectedCandy){c.y+=c.speed*dt;if(c.y>390)c.y=-70;}}}
+    const progress=gameProgress(g);$('mini-progress-fill').style.width=`${progress*100}%`;$('mini-dialog').querySelector('[role="progressbar"]').setAttribute('aria-valuenow',String(Math.round(progress*100)));
+    $('mini-caption').textContent=progress>=1?'できあがり！':g.id==='oven'&&!g.baking?'きじをえらんで、かまどを タップしても いいよ':g.id==='catch'&&g.selectedCandy?'かごを タップしても いいよ':g.id==='cookie'?`あと ${Math.max(0,g.target-g.count)}かい ポン！`:g.id==='catch'?`あと ${Math.max(0,g.target-g.count)}こ はこぼう`:g.id==='chocolate'?'まぜたぶんだけ すすむよ':'タップすると とりだせるよ';
     this.draw(g,progress);
-    if(progress>=1){const id=g.id;this.close();this.onComplete(id);return;}
+    if(progress>=1){g.finishing=true;if(g.completeFor>=.35){const id=g.id;this.close();this.onComplete(id);return;}}
     this.frameId=requestAnimationFrame(()=>this.animate());
   }
   text(text,x,y,size=40,color='#805c46'){const c=this.ctx;c.fillStyle=color;c.font=`${size}px 'Hiragino Maru Gothic ProN',sans-serif`;c.textAlign='center';c.textBaseline='middle';c.fillText(text,x,y);}

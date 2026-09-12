@@ -43,7 +43,7 @@
         </div>
       </section>
       <section class="palette" aria-label="おかしのパーツ">
-        <div class="catalogue-heading"><span>おかしの ざいりょうカタログ</span><small>えらんで、おうちへ。</small></div>
+        <div class="catalogue-heading"><span>おかしの ざいりょうカタログ</span><button id="choose-stage" class="stage-button" aria-label="背景のステージをえらぶ"><img id="stage-preview" alt=""><span>ばしょ：<b id="stage-label">くだものの もり</b></span><span aria-hidden="true">▾</span></button></div>
         <div id="categories" class="categories" role="tablist" aria-label="おかしのしゅるい"></div>
         <div class="parts-row"><div id="parts" class="parts" role="tabpanel"></div><button id="more-parts" class="more-parts"><span id="work-button-art">👩‍🍳</span><b>どうぶつと<br>つくる</b><span class="tiny-plus">＋</span></button></div>
       </section>
@@ -60,6 +60,8 @@
       <div id="gallery-list" class="gallery-list"></div>
     </main>
   </div>
+
+  <dialog id="stage-dialog" class="stage-dialog" aria-labelledby="stage-title"><button class="dialog-close round-button" data-close="stage-dialog" aria-label="閉じる"><span data-icon="close"></span></button><h2 id="stage-title">どこに たてよう？</h2><p>おうちは そのまま、ばしょを かえられるよ。</p><div id="stage-options" class="stage-options"></div></dialog>
 
   <dialog id="mini-dialog" class="mini-dialog" aria-labelledby="mini-title">
     <div class="mini-top"><button id="mini-close" class="round-button" aria-label="おうちへもどる"><span data-icon="back"></span></button><h2 id="mini-title"></h2><span id="mini-icon" class="mini-icon" aria-hidden="true"></span></div>
@@ -81,7 +83,7 @@
       <label class="setting"><span>オルゴールの音楽</span><input id="setting-bgm" type="checkbox" role="switch"></label>
       <label class="setting"><span>おかしの効果音</span><input id="setting-sfx" type="checkbox" role="switch"></label>
       <label class="setting"><span>日本語の声かけ</span><input id="setting-voice" type="checkbox" role="switch"></label>
-      <p class="setting-note">声かけは端末内の日本語音声がある場合に使えます。</p>
+      <p class="setting-note">声かけは完成したときだけ。続けて鳴らず、同じ台詞が続かないようにしています。端末内の日本語音声がある場合に使えます。</p>
       <div class="parent-info"><h3>iPadであそぶ</h3><p>Safariの共有ボタンから「ホーム画面に追加」。初回はこの画面のオフライン準備が完了するまでお待ちください。</p><p id="offline-status" role="status">オフラインの準備を確認中…</p><p>作品はこの端末・このブラウザに保存されます。ブラウザのデータを消すと作品も消えます。保存件数の上限は設けていません。</p></div>
     </div>
   </dialog>
