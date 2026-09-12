@@ -1,5 +1,6 @@
+import {CelebrationCues} from './celebrations.js';
 export class AudioPlayer {
-  constructor(settings={}){this.settings={bgm:true,sfx:true,voice:false,...settings};this.context=null;this.timer=null;this.note=0;}
+  constructor(settings={}){this.settings={bgm:true,sfx:true,voice:false,...settings};this.context=null;this.timer=null;this.note=0;this.cues=new CelebrationCues();}
   resume(){
     if(!this.context){const AC=window.AudioContext||window.webkitAudioContext;if(AC)this.context=new AC();}
     if(this.context?.state==='suspended')this.context.resume().catch(()=>{});
@@ -23,11 +24,12 @@ export class AudioPlayer {
   }
   stop(){clearInterval(this.timer);this.timer=null;window.speechSynthesis?.cancel();this.context?.suspend().catch(()=>{});}
   update(key,value){this.settings[key]=value;if(key==='bgm'){clearInterval(this.timer);this.timer=null;if(value)this.resume();}if(key==='voice'&&!value)window.speechSynthesis?.cancel();}
-  say(text){
-    if(!this.settings.voice||!window.speechSynthesis)return;
+  celebrate(kind){
+    if(!this.settings.voice||!window.speechSynthesis||window.speechSynthesis.speaking||window.speechSynthesis.pending)return;
     const voice=window.speechSynthesis.getVoices().find(v=>v.lang.startsWith('ja')&&v.localService);
     if(!voice)return;
+    const text=this.cues.next(kind,performance.now());if(!text)return;
     const u=new SpeechSynthesisUtterance(text);u.voice=voice;u.lang='ja-JP';u.rate=.85;u.pitch=1.2;
-    window.speechSynthesis.cancel();window.speechSynthesis.speak(u);
+    window.speechSynthesis.speak(u);
   }
 }

@@ -25,7 +25,7 @@ test('interrupted first download does not activate an incomplete worker',async()
 test('third party and non-GET requests are not intercepted',async()=>{const w=worker();assert.equal(await w.dispatch('fetch',{request:{url:'https://elsewhere.test/image.png',method:'GET',mode:'cors'}}),undefined);assert.equal(await w.dispatch('fetch',{request:{url:'https://example.test/',method:'POST',mode:'cors'}}),undefined);});
 test('a GitHub Pages subdirectory serves the new crew offline without capturing sibling sites',async()=>{
   const root='https://example.test/-okashi-world/',w=worker({root});await w.dispatch('install');
-  for(const file of ['index.html','js/atlas-map.js','assets/workshop.png']){
+  for(const file of ['index.html','js/atlas-map.js','js/celebrations.js','assets/workshop.png','assets/garden.webp','assets/seaside.webp','assets/snow.webp']){
     const request={url:root+file,method:'GET',mode:file==='index.html'?'navigate':'cors'};
     assert.equal((await w.dispatch('fetch',{request})).url,root+file);
   }

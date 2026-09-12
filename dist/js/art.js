@@ -1,11 +1,12 @@
-import { W,H,partById,ordered } from './model.js';
+import { W,H,partById,ordered,STAGES,stageById } from './model.js';
 import { ATLAS_MAP } from './atlas-map.js';
-export const ART_VERSION=2;
-export const art={background:null,atlases:[],sprites:[],urls:[]};
+export const ART_VERSION=3;
+export const art={backgrounds:{},atlases:[],sprites:[],urls:[]};
 function loadImage(path){return new Promise((res,rej)=>{const img=new Image();img.onload=()=>res(img);img.onerror=()=>rej(new Error('画像を読み込めませんでした'));img.src=new URL(path,import.meta.url).href;});}
 export async function loadArt(){
-  const images=await Promise.all([loadImage('../assets/garden.webp'),...ATLAS_MAP.map(a=>loadImage('../assets/'+a.file))]);
-  art.background=images.shift();art.atlases=images;art.sprites=[];art.urls=[];
+  const all=await Promise.all([...STAGES.map(s=>loadImage('../assets/'+s.file)),...ATLAS_MAP.map(a=>loadImage('../assets/'+a.file))]);
+  STAGES.forEach((s,i)=>art.backgrounds[s.id]=all[i]);
+  const images=all.slice(STAGES.length);art.atlases=images;art.sprites=[];art.urls=[];
   ATLAS_MAP.forEach((atlas,i)=>{
     if(images[i].width!==atlas.width||images[i].height!==atlas.height)throw new Error('おかしの画像サイズが違います');
     for(const [x,y,w,h] of atlas.rects){
@@ -24,14 +25,14 @@ export function drawSprite(ctx,index,x,y,w,h,angle=0){
   const img=art.sprites[index];if(!img)return;
   ctx.save();ctx.translate(x,y);ctx.rotate(angle);ctx.drawImage(img,-w/2,-h/2,w,h);ctx.restore();
 }
-export function drawBackground(ctx,width,height){
+export function drawBackground(ctx,width,height,stage='orchard'){
   ctx.fillStyle='#acd26b';ctx.fillRect(0,0,width,height);
-  if(!art.background)return;
-  const scale=Math.max(width/art.background.width,height/art.background.height),w=art.background.width*scale,h=art.background.height*scale;
-  ctx.drawImage(art.background,(width-w)/2,(height-h)/2,w,h);
+  const background=art.backgrounds[stageById(stage).id];if(!background)return;
+  const scale=Math.max(width/background.width,height/background.height),w=background.width*scale,h=background.height*scale;
+  ctx.drawImage(background,(width-w)/2,(height-h)/2,w,h);
 }
 export function drawWorld(ctx,house,selected=null,particles=[],background=true,crew={}){
-  if(background){ctx.clearRect(0,0,W,H);drawBackground(ctx,W,H);}
+  if(background){ctx.clearRect(0,0,W,H);drawBackground(ctx,W,H,house.stage);}
   // Workers stand behind pieces so the whole clearing stays available to build on.
   const bob=crew.cheer?Math.sin((crew.time||0)*.013)*7:0;
   drawSprite(ctx,crew.cheer?27:24,365,581+bob,89,155);
