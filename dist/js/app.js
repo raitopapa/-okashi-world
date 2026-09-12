@@ -57,6 +57,7 @@ function addPart(id,x,y){const p=partById(id);if(!p||!unlocked.includes(id))retu
 
 function updateStageButton(){
   const stage=stageById(house.stage);$('stage-label').textContent=stage.name;
+  audio.setStage(stage.id);
   $('stage-preview').src=new URL('../assets/'+stage.file,import.meta.url).href;
 }
 $('choose-stage').onclick=()=>{
@@ -66,7 +67,7 @@ $('choose-stage').onclick=()=>{
     const b=document.createElement('button');b.className='stage-card';b.setAttribute('aria-pressed',String(stage.id===stageById(house.stage).id));
     const img=document.createElement('img');img.src=new URL('../assets/'+stage.file,import.meta.url).href;img.alt='';
     const label=document.createElement('span');label.textContent=stage.name;b.append(img,label);
-    b.onclick=()=>{house.stage=stage.id;updateStageButton();$('stage-dialog').close();persistDraft();render();};
+    b.onclick=()=>{house.stage=stage.id;updateStageButton();audio.resume();$('stage-dialog').close();persistDraft();render();};
     $('stage-options').append(b);
   }
   $('stage-dialog').showModal();
