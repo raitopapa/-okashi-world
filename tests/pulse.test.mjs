@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import {Game,overlap} from '../dist/pulse-runner/js/engine.js';
 import {freshSave,validateSave,createLevel,STEP,STAGES} from '../dist/pulse-runner/js/levels.js';
+import {Input} from '../dist/pulse-runner/js/input.js';
 const make=(difficulty='normal')=>{const s=freshSave();s.difficulty=difficulty;s.cleared=[0,1,2];const g=new Game(s);g.load(0);return g;};
 const tick=(g,n,input={})=>{for(let i=0;i<n;i++)g.tick(STEP,input);};
 test('invalid saves cannot unlock a final mission or inject collection IDs',()=>{const s=validateSave({version:1,cleared:[-1,'0',6,0,0],difficulty:'__proto__',checkpoint:{stage:3,index:2},cores:{0:99},best:{0:-1}});assert.deepEqual(s.cleared,[0]);assert.equal(s.difficulty,'normal');assert.equal(s.checkpoint,null);assert.equal(s.cores[0],3);const q=validateSave({version:1,checkpoint:{stage:0,index:0,collected:['0:0','bad','0:0']}});assert.deepEqual(q.checkpoint.collected,['0:0']);});
@@ -24,3 +25,17 @@ for(const id of [0,1,2,3])test(`boss ${id+1}: telegraphs, second phase and defea
 function sw({fail=false}={}){const handlers={},data=new Map(),deleted=[];let claimed=false;const root='https://example.test/-okashi-world/pulse-runner/';const cache={addAll:async urls=>{if(fail)throw new Error('offline');for(const url of urls)data.set(url,{url});},match:async r=>data.get(typeof r==='string'?r:r.url.split('?')[0])};const self={location:{href:root+'sw.js'},addEventListener:(n,cb)=>handlers[n]=cb,clients:{claim:async()=>{claimed=true;}}};vm.runInNewContext(fs.readFileSync(new URL('../dist/pulse-runner/sw.js',import.meta.url),'utf8'),{self,URL,caches:{open:async()=>cache,keys:async()=>['other-game','pulse-runner-/-okashi-world/pulse-runner/-old'],delete:async k=>deleted.push(k)},fetch:async()=>{throw Error('offline');}});return {root,data,deleted,get claimed(){return claimed;},run:async(n,event={})=>{let promise;handlers[n]({...event,waitUntil:p=>promise=p,respondWith:p=>promise=p});return promise?await promise:undefined;}};}
 test('child worker precaches every playable file, supports offline navigation and avoids sibling requests',async()=>{const w=sw();await w.run('install');for(const path of fs.readdirSync(new URL('../dist/pulse-runner/',import.meta.url),{recursive:true})){if(path.endsWith('sw.js'))continue;const u=new URL('../dist/pulse-runner/'+path,import.meta.url);if(fs.statSync(u).isFile())assert.ok(w.data.has(w.root+path),path);}const request={url:w.root+'index.html',method:'GET',mode:'navigate'};assert.equal((await w.run('fetch',{request})).url,request.url);assert.equal(await w.run('fetch',{request:{...request,url:'https://example.test/-okashi-world/'}}),undefined);await w.run('activate');assert.deepEqual(w.deleted,['pulse-runner-/-okashi-world/pulse-runner/-old']);assert.ok(w.claimed);});
 test('failed child install never claims a client',async()=>{const w=sw({fail:true});await assert.rejects(w.run('install'),/offline/);assert.equal(w.claimed,false);});
+test('touch input supports simultaneous actions, independent fingers, quick taps and cancellation',()=>{
+ const old={window:globalThis.window,document:globalThis.document,navigator:globalThis.navigator};
+ const target=()=>({events:{},addEventListener(n,fn){(this.events[n]??=[]).push(fn);},send(n,e={}){for(const fn of this.events[n]||[])fn({preventDefault(){},...e});}});
+ const buttons=['left','right','jump','fire','dash'].map(action=>({...target(),dataset:{action},classList:{toggle(){}},setPointerCapture(){}}));
+ const win=target(),doc={...target(),hidden:false,getElementById:()=>({getBoundingClientRect:()=>({left:0,top:0,right:140,bottom:80,width:140})})};
+ Object.defineProperty(globalThis,'window',{value:win,configurable:true});Object.defineProperty(globalThis,'document',{value:doc,configurable:true});Object.defineProperty(globalThis,'navigator',{value:{getGamepads:()=>[]},configurable:true});
+ try{let pauses=0;const input=new Input({querySelectorAll:()=>buttons},()=>{},()=>pauses++);input.enabled=true;const [left,right,jump,fire]=buttons;
+  right.send('pointerdown',{pointerId:1});jump.send('pointerdown',{pointerId:2});fire.send('pointerdown',{pointerId:3});let s=input.sample();assert.ok(s.right&&s.jump&&s.fire);
+  right.send('pointerdown',{pointerId:4});input.sample();right.send('pointerup',{pointerId:1});assert.ok(input.sample().right);right.send('pointercancel',{pointerId:4});assert.equal(input.sample().right,false);
+  input.clear();jump.send('pointerdown',{pointerId:5});jump.send('pointerup',{pointerId:5});assert.ok(input.sample().jump);assert.equal(input.sample().jump,false);
+  left.send('pointerdown',{pointerId:6});input.sample();left.send('pointermove',{pointerId:6,clientX:100,clientY:20});assert.ok(input.sample().right);
+  win.send('blur');assert.equal(input.sample().right,false);assert.equal(pauses,1);
+ }finally{for(const [key,value] of Object.entries(old)){if(value===undefined)delete globalThis[key];else Object.defineProperty(globalThis,key,{value,configurable:true});}}
+});
