@@ -1,5 +1,5 @@
 // Change VERSION whenever a shipped asset changes; an install is all-or-nothing.
-const VERSION='v2.2.0';
+const VERSION='v2.2.1';
 const ROOT=new URL('./',self.location.href);
 const PREFIX=`okashi-world-${ROOT.pathname}-`;
 const CACHE=PREFIX+VERSION;
@@ -13,11 +13,15 @@ self.addEventListener('install',event=>{
   event.waitUntil((async()=>{const cache=await caches.open(CACHE);await cache.addAll(URLS);await self.skipWaiting();})());
 });
 self.addEventListener('activate',event=>{
-  event.waitUntil((async()=>{const keys=await caches.keys();await Promise.all(keys.filter(k=>k.startsWith(PREFIX)&&k!==CACHE).map(k=>caches.delete(k)));await self.clients.claim();})());
+  event.waitUntil((async()=>{const keys=await caches.keys();await Promise.all(keys.filter(k=>k.startsWith(PREFIX)&&k!==CACHE).map(k=>caches.delete(k)));await self.clients.claim();
+    // Recover a child URL that an older root worker answered with the house game.
+    const windows=await self.clients.matchAll?.({type:'window'})||[];
+    await Promise.all(windows.filter(c=>new URL(c.url).pathname.startsWith(new URL('pulse-runner/',ROOT).pathname)).map(c=>c.navigate(c.url)));})());
 });
 self.addEventListener('fetch',event=>{
   const request=event.request,url=new URL(request.url);
   if(request.method!=='GET'||url.origin!==ROOT.origin||!url.pathname.startsWith(ROOT.pathname))return;
+  if(url.pathname.startsWith(new URL('pulse-runner/',ROOT).pathname))return;
   // A failed offline navigation must not replace cached artwork or script responses.
   event.respondWith((async()=>{
     const cache=await caches.open(CACHE);
