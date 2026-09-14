@@ -14,7 +14,7 @@ function worker({failInstall=false,root='https://example.test/'}={}){
 }
 test('complete precache contains every public runtime asset except the worker itself',async()=>{
   const w=worker();await w.dispatch('install');const files=[];function walk(url,prefix=''){for(const e of fs.readdirSync(url,{withFileTypes:true})){if(e.isDirectory())walk(new URL(e.name+'/',url),prefix+e.name+'/');else files.push(prefix+e.name);}}walk(new URL('../dist/',import.meta.url));
-  for(const f of files.filter(f=>f!=='sw.js'&&!f.startsWith('pulse-runner/')))assert.ok(w.cacheData.has('https://example.test/'+f),`not precached: ${f}`);assert.equal(w.skipped,true);
+  for(const f of files.filter(f=>f!=='sw.js'))assert.ok(w.cacheData.has('https://example.test/'+f),`not precached: ${f}`);assert.equal(w.skipped,true);
 });
 test('offline navigation and artwork requests are served without network',async()=>{
   const w=worker();await w.dispatch('install');const page=await w.dispatch('fetch',{request:{url:'https://example.test/',method:'GET',mode:'navigate'}});assert.equal(page.url,'https://example.test/index.html');
@@ -32,5 +32,3 @@ test('a GitHub Pages subdirectory serves the new crew offline without capturing 
   assert.equal(await w.dispatch('fetch',{request:{url:'https://example.test/another-game/',method:'GET',mode:'navigate'}}),undefined);
   assert.equal(w.network.length,0);
 });
-
-test('root worker leaves Pulse Runner navigation and assets to its own worker',async()=>{const w=worker({root:'https://example.test/-okashi-world/'});for(const file of ['', 'js/app.js'])assert.equal(await w.dispatch('fetch',{request:{url:'https://example.test/-okashi-world/pulse-runner/'+file,method:'GET',mode:'navigate'}}),undefined);});

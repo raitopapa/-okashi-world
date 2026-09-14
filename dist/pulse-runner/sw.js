@@ -1,6 +1,0 @@
-const ROOT=new URL('./',self.location.href),PREFIX=`pulse-runner-${ROOT.pathname}-`,CACHE=PREFIX+'v1.0.0';
-const FILES=['./','index.html','review.html','style.css','manifest.webmanifest','assets/icon.svg','assets/icon-192.png','assets/icon-512.png','js/app.js','js/levels.js','js/engine.js','js/render.js','js/input.js','js/audio.js'];
-self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(FILES.map(p=>new URL(p,ROOT).href)))));
-// Updates wait until the previous game closes, so a session keeps one coherent version.
-self.addEventListener('activate',event=>event.waitUntil((async()=>{await Promise.all((await caches.keys()).filter(k=>k.startsWith(PREFIX)&&k!==CACHE).map(k=>caches.delete(k)));await self.clients.claim();})()));
-self.addEventListener('fetch',event=>{const r=event.request,u=new URL(r.url);if(r.method!=='GET'||u.origin!==ROOT.origin||!u.pathname.startsWith(ROOT.pathname))return;event.respondWith((async()=>{const cache=await caches.open(CACHE),hit=await cache.match(r,{ignoreSearch:true});if(hit)return hit;try{return await fetch(r);}catch(error){if(r.mode==='navigate')return await cache.match(new URL('index.html',ROOT).href);throw error;}})());});
